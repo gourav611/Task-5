@@ -1,0 +1,145 @@
+HTML CODE
+<header>
+  <h1>Task Manager</h1>
+  <button id="themeToggle">Toggle Theme</button>
+</header>
+
+<main>
+  <form id="taskForm">
+    <input type="text" id="taskInput" placeholder="New Task..." required />
+    <button type="submit">Add Task</button>
+  </form>
+
+  <section id="filters">
+    <button data-filter="all">All</button>
+    <button data-filter="active">Active</button>
+    <button data-filter="completed">Completed</button>
+  </section>
+
+  <ul id="taskList"></ul>
+  <button id="clearTasks">Clear All</button>
+</main>
+
+CSS Code
+
+:root {
+  --bg: #fff;
+  --text: #000;
+  --accent: #007bff;
+}
+
+body.dark {
+  --bg: #121212;
+  --text: #eee;
+  --accent: #66f;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: sans-serif;
+  margin: 0;
+  padding: 1em;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Flex Layout */
+header, main, #filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+/* Responsive */
+@media (min-width: 600px) {
+  main {
+    max-width: 600px;
+    margin: auto;
+  }
+}
+
+Js code 
+
+const taskForm = document.getElementById("taskForm");
+const taskInput = document.getElementById("taskInput");
+const taskList = document.getElementById("taskList");
+const filters = document.querySelectorAll("#filters button");
+const clearTasks = document.getElementById("clearTasks");
+const themeToggle = document.getElementById("themeToggle");
+
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let filter = "all";
+
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function renderTasks() {
+  taskList.innerHTML = "";
+  tasks
+    .filter(task => filter === "all" || (filter === "active" && !task.done) || (filter === "completed" && task.done))
+    .forEach((task, index) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <input type="checkbox" ${task.done ? "checked" : ""} data-index="${index}">
+        <span style="text-decoration:${task.done ? 'line-through' : 'none'}">${task.text}</span>
+        <button data-delete="${index}">❌</button>
+      `;
+      taskList.appendChild(li);
+    });
+}
+
+taskForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const text = taskInput.value.trim();
+  if (text) {
+    tasks.push({ text, done: false });
+    saveTasks();
+    renderTasks();
+    taskInput.value = "";
+  }
+});
+
+taskList.addEventListener("click", e => {
+  const idx = e.target.dataset.index;
+  const del = e.target.dataset.delete;
+  if (idx !== undefined) {
+    tasks[idx].done = !tasks[idx].done;
+    saveTasks();
+    renderTasks();
+  } else if (del !== undefined) {
+    tasks.splice(del, 1);
+    saveTasks();
+    renderTasks();
+  }
+});
+
+filters.forEach(btn => {
+  btn.addEventListener("click", () => {
+    filter = btn.dataset.filter;
+    renderTasks();
+  });
+});
+
+clearTasks.addEventListener("click", () => {
+  tasks = [];
+  saveTasks();
+  renderTasks();
+});
+
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+  renderTasks();
+});
+
+
+Optimization code via html
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
